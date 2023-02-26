@@ -2,6 +2,7 @@ library(shiny)
 library(tidyverse)
 library(rvest)
 library(leaflet)
+library(sf)
 
 function(input, output, session) {
 
@@ -37,6 +38,14 @@ function(input, output, session) {
              MemberContent = NULL) %>%
       .[order(.$District),]
     
+    senatesf <- read_sf("Senate SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
+      rename(District = DISTRICT) %>% left_join(tableSenate) %>%
+      mutate(tooltip = paste("District:",District,"<br>Senator:",SenatorName,"<br>Party:",Party))
+    
+    housesf <- read_sf("House SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
+      rename(District = DISTRICT) %>% left_join(tableHouse) %>%
+      mutate(tooltip = paste("District:",District,"<br>Representative:",RepresentativeName,"<br>Party:",Party))
+    
     output$SenateParty <- renderPlot({
       expand.grid(row = 1:3, column = 1:10) %>% 
       ggplot(aes(x = column, y = row,
@@ -71,20 +80,12 @@ function(input, output, session) {
         scale_y_continuous()
     })
     
-    output$SenateDistricts <- renderPlot({
-      senatesf <- read_sf("Senate SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
-        rename(District = DISTRICT) %>% left_join(tableSenate) %>%
-        mutate(tooltip = paste("District:",District,"<br>Senator:",SenatorName))
-      
+    output$SenateDistricts <- renderLeaflet({
       leaflet(senatesf) %>% addTiles() %>% addPolygons(color = ~PartyColor,popup = ~tooltip)
     })
     
     output$HouseDistricts <- renderLeaflet({
-      housesf <- read_sf("House SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
-        rename(District = DISTRICT) %>% left_join(tableHouse) %>%
-        mutate(tooltip = paste("District:",District,"<br>Representative:",RepresentativeName))
-      
       leaflet(housesf) %>% addTiles() %>% addPolygons(color = ~PartyColor,popup = ~tooltip)
-      
+
     })
 }
