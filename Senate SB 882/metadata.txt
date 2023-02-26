@@ -1,0 +1,11 @@
+ Organization: Oregon Legislative Policy and Research Office (LPRO)
+Address: 900 Court St. NE, Room 453
+City: Salem
+State: OR
+Postal Code: 97301
+Phone: 503-986-1813
+Date: September,
+Credit: The Oregon House and Senate Redistricting Committees provided 2020 Census block assignment files to the Oregon Legislative Policy and Research Office (LPRO), who generated this shapefile using the Import and Export tools in ESRI's online redistricting software. Please note LPRO was not involved in drawing the district boundaries. 
+
+Source: Oregon Spatial Data Library
+https://spatialdata.oregonexplorer.info/geoportal/details;id=0596ec53337645e5a3ffd9031cb850d3

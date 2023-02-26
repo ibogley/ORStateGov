@@ -1,8 +1,6 @@
 
 library(shiny)
-library(rvest)
-
-# Define UI for application that draws a histogram
+library(leaflet)
 fluidPage(
   tabsetPanel(
     tabPanel(
@@ -13,7 +11,21 @@ fluidPage(
           width = 2
         ),
         mainPanel(
-          plotOutput("SenateParty")
+          plotOutput("SenateParty"),
+          leafletOutput("SenateDistricts")
+        )
+      )
+    ),
+    tabPanel(
+      "House",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("HouseVisualType","Visual",c("Parties","Districts")),
+          width = 2
+        ),
+        mainPanel(
+          plotOutput("HouseParty"),
+          leafletOutput("HouseDistricts")
         )
       )
     )
