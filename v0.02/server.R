@@ -3,6 +3,7 @@ library(tidyverse)
 library(rvest)
 library(leaflet)
 library(sf)
+library(xml2)
 
 function(input, output, session) {
 
@@ -19,7 +20,7 @@ function(input, output, session) {
              CapitolAddress = gsub(".*CapitolAddress(.*)Email.*","\\1",gsub("[^[:alnum:],]","",MemberContent)),
              Email = gsub(".*Email(.*)Website.*","\\1",gsub("[^[:alnum:].@]","",MemberContent)),
              Website = gsub(".*Website:(.*)$","\\1",gsub("[^[:alnum:]:./]","",MemberContent)),
-             PartyColor = ifelse(Party =="Republican","red",ifelse(Party == "Democratic","blue","purple")),
+             PartyColor = ifelse(Party =="Republican","red",ifelse(Party == "Democratic","darkblue","purple")),
              MemberContent = NULL) %>%
       .[order(.$District),]
     
@@ -34,15 +35,15 @@ function(input, output, session) {
              CapitolAddress = gsub(".*CapitolAddress(.*)Email.*","\\1",gsub("[^[:alnum:],]","",MemberContent)),
              Email = gsub(".*Email(.*)Website.*","\\1",gsub("[^[:alnum:].@]","",MemberContent)),
              Website = gsub(".*Website:(.*)$","\\1",gsub("[^[:alnum:]:./]","",MemberContent)),
-             PartyColor = ifelse(Party =="Republican","red",ifelse(Party == "Democratic","blue","purple")),
+             PartyColor = ifelse(Party =="Republican","red",ifelse(Party == "Democratic","darkblue","purple")),
              MemberContent = NULL) %>%
       .[order(.$District),]
     
-    senatesf <- read_sf("Senate SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
+    senatesf <- read_sf("../Senate SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
       rename(District = DISTRICT) %>% left_join(tableSenate) %>%
       mutate(tooltip = paste("District:",District,"<br>Senator:",SenatorName,"<br>Party:",Party))
     
-    housesf <- read_sf("House SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
+    housesf <- read_sf("../House SB 882") %>% st_transform(crs = st_crs("WGS84")) %>%
       rename(District = DISTRICT) %>% left_join(tableHouse) %>%
       mutate(tooltip = paste("District:",District,"<br>Representative:",RepresentativeName,"<br>Party:",Party))
     
@@ -81,11 +82,32 @@ function(input, output, session) {
     })
     
     output$SenateDistricts <- renderLeaflet({
-      leaflet(senatesf) %>% addTiles() %>% addPolygons(color = ~PartyColor,popup = ~tooltip)
+      leaflet(senatesf) %>% addProviderTiles(providers$Esri.WorldStreetMap) %>% 
+        addPolygons(fillColor = ~PartyColor,popup = ~tooltip,fillOpacity = .25,color = "black",weight = 2)
     })
     
     output$HouseDistricts <- renderLeaflet({
-      leaflet(housesf) %>% addTiles() %>% addPolygons(color = ~PartyColor,popup = ~tooltip)
-
+      leaflet(housesf) %>% addProviderTiles(providers$Esri.WorldStreetMap) %>% 
+        addPolygons(fillColor = ~PartyColor,popup = ~tooltip,fillOpacity = .25,color = "black",weight = 2)
+    })
+    
+    output$LegislatureVisual <- renderUI({
+      if (input$Body=="Senate"&input$VisualSelector=="Party Representation") {
+        plotOutput("SenateParty")
+      } else if (input$Body=="Senate"&input$VisualSelector=="District Map") {
+        leafletOutput("SenateDistricts")
+      } else if (input$Body=="House of Representatives"&input$VisualSelector=="Party Representation") {
+        plotOutput("HouseParty")
+      } else if (input$Body=="House of Representatives"&input$VisualSelector=="District Map") {
+        leafletOutput("HouseDistricts")
+      }
+    })
+    
+    BoardsCommissionsAgencies <- read_html("https://sos.oregon.gov/blue-book/Pages/state/list.aspx") %>%
+      html_nodes("#ctl00_PlaceHolderMain_ctl00__ControlWrapper_RichHtmlField > div:nth-child(22) > div:nth-child(1) > div a") %>%
+      as.character() %>% paste(collapse = "<br>")
+    
+    output$AgenciesBoardsCommissions <- renderUI({
+      HTML(BoardsCommissionsAgencies)
     })
 }

@@ -2,32 +2,28 @@
 library(shiny)
 library(leaflet)
 fluidPage(
+  titlePanel("Oregon Local Government"),
   tabsetPanel(
     tabPanel(
-      "Senate",
+      "Legislature",
       sidebarLayout(
         sidebarPanel(
-          selectInput("SenateVisualType","Visual",c("Parties","Districts")),
+          selectInput("Body","Body",c("Senate","House of Representatives")),
+          selectInput("VisualSelector","Visual",c("Party Representation","District Map")),
           width = 2
         ),
         mainPanel(
-          plotOutput("SenateParty"),
-          leafletOutput("SenateDistricts")
+          uiOutput("LegislatureVisual")
         )
       )
     ),
     tabPanel(
-      "House",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput("HouseVisualType","Visual",c("Parties","Districts")),
-          width = 2
-        ),
-        mainPanel(
-          plotOutput("HouseParty"),
-          leafletOutput("HouseDistricts")
-        )
-      )
+      "State Law",
+      a("Link to current OR State Law",href = "https://www.oregonlegislature.gov/bills_laws/pages/ors.aspx")
+    ),
+    tabPanel(
+      "Governor/Executive Agencies",
+      uiOutput("AgenciesBoardsCommissions")
     )
   )
 )
